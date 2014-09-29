@@ -3,12 +3,20 @@ var fs = require('fs');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var names = []
+var first_names = []
+var last_names = []
 var count = {}
-fs.readFile('names.txt', {encoding: 'utf-8'}, function(err, data){
-    names = data.split('\n');
-    names = names.slice(0, names.length - 1)
-    names = names.map(function(element){
+fs.readFile('last_names.txt', {encoding: 'utf-8'}, function(err, data){
+    last_names = data.split('\n');
+    last_names = last_names.slice(0, last_names.length - 1)
+    last_names = last_names.map(function(element){
+        return element.split(' ')[0]
+    })
+})
+fs.readFile('first_names.txt', {encoding: 'utf-8'}, function(err, data){
+    first_names = data.split('\n');
+    first_names = first_names.slice(0, first_names.length - 1)
+    first_names = first_names.map(function(element){
         return element.split(' ')[0]
     })
 })
@@ -20,7 +28,9 @@ app.use(express.static(__dirname + '/public'));
 io.on('connection', function(socket){
     socket.on('fingerprint', function(fingerprint){
         if(count[fingerprint]){count[fingerprint] += 1}else{count[fingerprint] = 1}
-        socket.emit('info', names[fingerprint % names.length] + ',' + count[fingerprint]);
+        var name = first_names[fingerprint % first_names.length] + ' ' + last_names[fingerprint % last_names.length]
+        console.log(name + " view count: " + count[fingerprint])
+        socket.emit('info', name + ',' + count[fingerprint]);
     });
 
 });
